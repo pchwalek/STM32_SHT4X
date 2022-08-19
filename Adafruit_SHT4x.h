@@ -20,9 +20,12 @@
 #ifndef ADAFRUIT_SHT4x_H
 #define ADAFRUIT_SHT4x_H
 
-#include "Arduino.h"
-#include <Adafruit_I2CDevice.h>
-#include <Adafruit_Sensor.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "cmsis_os2.h"
+#include "Adafruit_Sensor.h"
 
 #define SHT4x_DEFAULT_ADDR 0x44 /**< SHT4x I2C Address */
 #define SHT4x_NOHEAT_HIGHPRECISION                                             \
@@ -113,7 +116,7 @@ public:
   Adafruit_SHT4x(void);
   ~Adafruit_SHT4x(void);
 
-  bool begin(TwoWire *theWire = &Wire);
+  bool begin(I2C_HandleTypeDef *i2c_handle = NULL);
   uint32_t readSerial(void);
   bool reset(void);
 
@@ -133,7 +136,8 @@ protected:
   uint16_t _sensorid_humidity; ///< ID number for humidity
   uint16_t _sensorid_temp;     ///< ID number for temperature
 
-  Adafruit_I2CDevice *i2c_dev = NULL;      ///< Pointer to I2C bus interface
+	uint8_t i2c_addr = 0;
+  I2C_HandleTypeDef *i2c_han = NULL;///< Pointer to I2C bus interface
   Adafruit_SHT4x_Temp *temp_sensor = NULL; ///< Temp sensor data object
   Adafruit_SHT4x_Humidity *humidity_sensor =
       NULL; ///< Humidity sensor data object
@@ -152,6 +156,16 @@ private:
 
   void fillTempEvent(sensors_event_t *temp, uint32_t timestamp);
   void fillHumidityEvent(sensors_event_t *humidity, uint32_t timestamp);
+
+  bool write(uint8_t *data, uint8_t size);
+  bool read(uint8_t *data, uint8_t size);
+  bool writeRegister(uint8_t mem_addr, uint8_t *val, uint16_t size);
+  bool readRegister(uint16_t mem_addr, uint8_t *dest, uint16_t size);
+  
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

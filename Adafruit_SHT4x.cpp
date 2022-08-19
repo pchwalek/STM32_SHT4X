@@ -28,6 +28,11 @@
  */
 
 #include "Adafruit_SHT4x.h"
+#include "stm32wbxx_hal.h"
+#include "math.h"
+#include "string.h"
+
+#define I2C_TIMEOUT		10
 
 static uint8_t crc8(const uint8_t *data, int len);
 
@@ -55,16 +60,10 @@ Adafruit_SHT4x::~Adafruit_SHT4x(void) {
  *
  * @return True if initialisation was successful, otherwise False.
  */
-bool Adafruit_SHT4x::begin(TwoWire *theWire) {
-  if (i2c_dev) {
-    delete i2c_dev; // remove old interface
-  }
+bool Adafruit_SHT4x::begin(I2C_HandleTypeDef *i2c_handle) {
 
-  i2c_dev = new Adafruit_I2CDevice(SHT4x_DEFAULT_ADDR, theWire);
-
-  if (!i2c_dev->begin()) {
-    return false;
-  }
+  i2c_han = i2c_handle;
+  i2c_addr = SHT4x_DEFAULT_ADDR << 1;
 
   if (!reset()) {
     return false;
@@ -84,11 +83,11 @@ uint32_t Adafruit_SHT4x::readSerial(void) {
   uint8_t cmd = SHT4x_READSERIAL;
   uint8_t reply[6];
 
-  if (!i2c_dev->write(&cmd, 1)) {
+  if (!write(&cmd, 1)) {
     return false;
   }
-  delay(10);
-  if (!i2c_dev->read(reply, 6)) {
+  HAL_Delay(10);
+  if (!read(reply, 6)) {
     return false;
   }
 
@@ -114,10 +113,10 @@ uint32_t Adafruit_SHT4x::readSerial(void) {
  */
 bool Adafruit_SHT4x::reset(void) {
   uint8_t cmd = SHT4x_SOFTRESET;
-  if (!i2c_dev->write(&cmd, 1)) {
+  if (!write(&cmd, 1)) {
     return false;
   }
-  delay(1);
+  HAL_Delay(1);
   return true;
 }
 
@@ -166,7 +165,7 @@ sht4x_heater_t Adafruit_SHT4x::getHeater(void) { return _heater; }
 /**************************************************************************/
 bool Adafruit_SHT4x::getEvent(sensors_event_t *humidity,
                               sensors_event_t *temp) {
-  uint32_t t = millis();
+  uint32_t t = HAL_GetTick();
 
   uint8_t readbuffer[6];
   uint8_t cmd = SHT4x_NOHEAT_HIGHPRECISION;
@@ -214,11 +213,11 @@ bool Adafruit_SHT4x::getEvent(sensors_event_t *humidity,
     duration = 110;
   }
 
-  if (!i2c_dev->write(&cmd, 1)) {
+  if (!write(&cmd, 1)) {
     return false;
   }
-  delay(duration);
-  if (!i2c_dev->read(readbuffer, 6)) {
+  HAL_Delay(duration);
+  if (!read(readbuffer, 6)) {
     return false;
   }
 
@@ -231,7 +230,7 @@ bool Adafruit_SHT4x::getEvent(sensors_event_t *humidity,
   _temperature = -45 + 175 * t_ticks / 65535;
   _humidity = -6 + 125 * rh_ticks / 65535;
 
-  _humidity = min(max(_humidity, (float)0.0), (float)100.0);
+  _humidity = fmin(fmax(_humidity, (float)0.0), (float)100.0);
 
   // use helpers to fill in the events
   if (temp)
@@ -260,23 +259,23 @@ void Adafruit_SHT4x::fillHumidityEvent(sensors_event_t *humidity,
   humidity->relative_humidity = _humidity;
 }
 
-/**
- * @brief Gets the Adafruit_Sensor object for the SHT4x's humidity sensor
- *
- * @return Adafruit_Sensor*
- */
-Adafruit_Sensor *Adafruit_SHT4x::getHumiditySensor(void) {
-  return humidity_sensor;
-}
+// /**
+//  * @brief Gets the Adafruit_Sensor object for the SHT4x's humidity sensor
+//  *
+//  * @return Adafruit_Sensor*
+//  */
+// Adafruit_Sensor *Adafruit_SHT4x::getHumiditySensor(void) {
+//   return humidity_sensor;
+// }
 
-/**
- * @brief Gets the Adafruit_Sensor object for the SHT4x's temperature sensor
- *
- * @return Adafruit_Sensor*
- */
-Adafruit_Sensor *Adafruit_SHT4x::getTemperatureSensor(void) {
-  return temp_sensor;
-}
+// /**
+//  * @brief Gets the Adafruit_Sensor object for the SHT4x's temperature sensor
+//  *
+//  * @return Adafruit_Sensor*
+//  */
+// Adafruit_Sensor *Adafruit_SHT4x::getTemperatureSensor(void) {
+//   return temp_sensor;
+// }
 /**
  * @brief  Gets the sensor_t object describing the SHT4x's humidity sensor
  *
@@ -349,7 +348,7 @@ bool Adafruit_SHT4x::writeCommand(uint16_t command) {
   cmd[0] = command >> 8;
   cmd[1] = command & 0xFF;
 
-  return i2c_dev->write(cmd, 2);
+  return write(cmd, 2);
 }
 
 /**
@@ -364,7 +363,45 @@ bool Adafruit_SHT4x::readCommand(uint16_t command, uint8_t *buffer,
   cmd[0] = command >> 8;
   cmd[1] = command & 0xFF;
 
-  return i2c_dev->write_then_read(cmd, 2, buffer, num_bytes);
+  write(cmd, 2);
+
+  return read(buffer, num_bytes);
+}
+
+bool Adafruit_SHT4x::write(uint8_t *data, uint8_t size) {
+	if (HAL_OK
+			== HAL_I2C_Master_Transmit(i2c_han, i2c_addr, data, size, I2C_TIMEOUT)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool Adafruit_SHT4x::read(uint8_t *data, uint8_t size) {
+	if (HAL_OK
+			== HAL_I2C_Master_Receive(i2c_han, i2c_addr, data, size, I2C_TIMEOUT)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool Adafruit_SHT4x::readRegister(uint16_t mem_addr, uint8_t *dest, uint16_t size) {
+	if (HAL_OK
+			== HAL_I2C_Mem_Read(i2c_han, i2c_addr, mem_addr, 1, dest, size, I2C_TIMEOUT)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool Adafruit_SHT4x::writeRegister(uint8_t mem_addr, uint8_t *val, uint16_t size) {
+	if (HAL_OK
+			== HAL_I2C_Mem_Write(i2c_han, i2c_addr, mem_addr, 1, val, size, I2C_TIMEOUT)) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /**
