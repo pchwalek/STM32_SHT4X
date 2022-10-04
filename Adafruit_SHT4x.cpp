@@ -86,7 +86,7 @@ uint32_t Adafruit_SHT4x::readSerial(void) {
   if (!write(&cmd, 1)) {
     return false;
   }
-  HAL_Delay(10);
+  osDelay(10);
   if (!read(reply, 6)) {
     return false;
   }
@@ -116,7 +116,7 @@ bool Adafruit_SHT4x::reset(void) {
   if (!write(&cmd, 1)) {
     return false;
   }
-  HAL_Delay(1);
+  osDelay(1);
   return true;
 }
 
@@ -215,7 +215,7 @@ bool Adafruit_SHT4x::getEvent(void) {
   if (!write(&cmd, 1)) {
     return false;
   }
-  HAL_Delay(duration);
+  osDelay(duration);
   if (!read(readbuffer, 6)) {
     return false;
   }
