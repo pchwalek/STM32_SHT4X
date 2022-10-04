@@ -81,7 +81,7 @@ public:
   /** @brief Create an Adafruit_Sensor compatible object for the humidity sensor
     @param parent A pointer to the SHT4x class */
   Adafruit_SHT4x_Humidity(Adafruit_SHT4x *parent) { _theSHT4x = parent; }
-  bool getEvent(sensors_event_t *);
+//  bool getEvent(sensors_event_t *);
   void getSensor(sensor_t *);
 
 private:
@@ -100,7 +100,7 @@ public:
       @param parent A pointer to the SHT4x class */
   Adafruit_SHT4x_Temp(Adafruit_SHT4x *parent) { _theSHT4x = parent; }
 
-  bool getEvent(sensors_event_t *);
+//  bool getEvent(sensors_event_t *);
   void getSensor(sensor_t *);
 
 private:
@@ -125,13 +125,16 @@ public:
   void setHeater(sht4x_heater_t heat);
   sht4x_heater_t getHeater(void);
 
-  bool getEvent(sensors_event_t *humidity, sensors_event_t *temp);
+  bool getEvent(void);
+  float _temperature, ///< Last reading's temperature (C)
+        _humidity;      ///< Last reading's humidity (percent)
+
   Adafruit_Sensor *getTemperatureSensor(void);
   Adafruit_Sensor *getHumiditySensor(void);
 
 protected:
-  float _temperature, ///< Last reading's temperature (C)
-      _humidity;      ///< Last reading's humidity (percent)
+//  float _temperature, ///< Last reading's temperature (C)
+//      _humidity;      ///< Last reading's humidity (percent)
 
   uint16_t _sensorid_humidity; ///< ID number for humidity
   uint16_t _sensorid_temp;     ///< ID number for temperature

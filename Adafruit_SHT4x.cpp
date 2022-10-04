@@ -69,8 +69,8 @@ bool Adafruit_SHT4x::begin(I2C_HandleTypeDef *i2c_handle) {
     return false;
   }
 
-  humidity_sensor = new Adafruit_SHT4x_Humidity(this);
-  temp_sensor = new Adafruit_SHT4x_Temp(this);
+//  humidity_sensor = new Adafruit_SHT4x_Humidity(this);
+//  temp_sensor = new Adafruit_SHT4x_Temp(this);
   return true;
 }
 
@@ -163,8 +163,7 @@ sht4x_heater_t Adafruit_SHT4x::getHeater(void) { return _heater; }
     @returns true if the event data was read successfully
 */
 /**************************************************************************/
-bool Adafruit_SHT4x::getEvent(sensors_event_t *humidity,
-                              sensors_event_t *temp) {
+bool Adafruit_SHT4x::getEvent(void) {
   uint32_t t = HAL_GetTick();
 
   uint8_t readbuffer[6];
@@ -233,10 +232,10 @@ bool Adafruit_SHT4x::getEvent(sensors_event_t *humidity,
   _humidity = fmin(fmax(_humidity, (float)0.0), (float)100.0);
 
   // use helpers to fill in the events
-  if (temp)
-    fillTempEvent(temp, t);
-  if (humidity)
-    fillHumidityEvent(humidity, t);
+//  if (temp)
+//    fillTempEvent(temp, t);
+//  if (humidity)
+//    fillHumidityEvent(humidity, t);
   return true;
 }
 
@@ -296,16 +295,16 @@ void Adafruit_SHT4x_Humidity::getSensor(sensor_t *sensor) {
   sensor->max_value = 100;
   sensor->resolution = 2;
 }
-/**
-    @brief  Gets the humidity as a standard sensor event
-    @param  event Sensor event object that will be populated
-    @returns True
- */
-bool Adafruit_SHT4x_Humidity::getEvent(sensors_event_t *event) {
-  _theSHT4x->getEvent(event, NULL);
-
-  return true;
-}
+///**
+//    @brief  Gets the humidity as a standard sensor event
+//    @param  event Sensor event object that will be populated
+//    @returns True
+// */
+//bool Adafruit_SHT4x_Humidity::getEvent(sensors_event_t *event) {
+//  _theSHT4x->getEvent(event, NULL);
+//
+//  return true;
+//}
 /**
  * @brief  Gets the sensor_t object describing the SHT4x's tenperature sensor
  *
@@ -326,16 +325,16 @@ void Adafruit_SHT4x_Temp::getSensor(sensor_t *sensor) {
   sensor->max_value = 85;
   sensor->resolution = 0.3; // depends on calibration data?
 }
-/*!
-    @brief  Gets the temperature as a standard sensor event
-    @param  event Sensor event object that will be populated
-    @returns true
-*/
-bool Adafruit_SHT4x_Temp::getEvent(sensors_event_t *event) {
-  _theSHT4x->getEvent(NULL, event);
-
-  return true;
-}
+///*!
+//    @brief  Gets the temperature as a standard sensor event
+//    @param  event Sensor event object that will be populated
+//    @returns true
+//*/
+//bool Adafruit_SHT4x_Temp::getEvent(sensors_event_t *event) {
+//  _theSHT4x->getEvent(NULL, event);
+//
+//  return true;
+//}
 
 /**
  * Internal function to perform an I2C write.
