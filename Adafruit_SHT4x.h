@@ -53,20 +53,20 @@ extern "C" {
 
 /** How precise (repeatable) the measurement will be */
 typedef enum {
-  SHT4X_HIGH_PRECISION,
-  SHT4X_MED_PRECISION,
-  SHT4X_LOW_PRECISION,
+  SHT4X_HIGH_PRECISION = 0,
+  SHT4X_MED_PRECISION = 1,
+  SHT4X_LOW_PRECISION = 2,
 } sht4x_precision_t;
 
 /** Optional pre-heater configuration setting */
 typedef enum {
-  SHT4X_NO_HEATER,
-  SHT4X_HIGH_HEATER_1S,
-  SHT4X_HIGH_HEATER_100MS,
-  SHT4X_MED_HEATER_1S,
-  SHT4X_MED_HEATER_100MS,
-  SHT4X_LOW_HEATER_1S,
-  SHT4X_LOW_HEATER_100MS,
+  SHT4X_NO_HEATER = 0,
+  SHT4X_HIGH_HEATER_1S = 1,
+  SHT4X_HIGH_HEATER_100MS = 2,
+  SHT4X_MED_HEATER_1S = 3,
+  SHT4X_MED_HEATER_100MS = 4,
+  SHT4X_LOW_HEATER_1S = 5,
+  SHT4X_LOW_HEATER_100MS = 6,
 } sht4x_heater_t;
 
 class Adafruit_SHT4x;
